@@ -42,11 +42,18 @@
      */
     initialize: function(el, options) {
       options || (options = { });
+      if(options.offscreenCanvas) {
+          el = document.createElement('canvas');
+      }
       this.renderAndResetBound = this.renderAndReset.bind(this);
       this.requestRenderAllBound = this.requestRenderAll.bind(this);
       this._initStatic(el, options);
     },
 
+
+    offscreenCanvas: false,
+
+    
     /**
      * Background color of canvas instance.
      * Should be set via {@link fabric.StaticCanvas#setBackgroundColor}.
@@ -231,7 +238,7 @@
     _initStatic: function(el, options) {
       var cb = this.requestRenderAllBound;
       this._objects = [];
-      this._createLowerCanvas(el);
+      this._createLowerCanvas(el, options);
       this._initOptions(options);
       this._setImageSmoothing();
       // only initialize retina scaling once
@@ -546,8 +553,9 @@
      * Creates a bottom canvas
      * @private
      * @param {HTMLElement} [canvasEl]
+     * @param {object} [options]
      */
-    _createLowerCanvas: function (canvasEl) {
+    _createLowerCanvas: function (canvasEl, options) {
       // canvasEl === 'HTMLCanvasElement' does not work on jsdom/node
       if (canvasEl && canvasEl.getContext) {
         this.lowerCanvasEl = canvasEl;
@@ -562,7 +570,11 @@
         this._applyCanvasStyle(this.lowerCanvasEl);
       }
 
-      this.contextContainer = this.lowerCanvasEl.getContext('2d');
+      if (options.offscreenCanvas) {
+        this.contextContainer = new OffscreenCanvas(canvasEl.width, canvasEl.height).getContext('2d');
+      } else {
+        this.contextContainer = this.lowerCanvasEl.getContext('2d');
+      }
     },
 
     /**
